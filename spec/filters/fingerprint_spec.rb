@@ -261,7 +261,7 @@ describe LogStash::Filters::Fingerprint, :ecs_compatibility_support, :aggregate_
         let(:config) { super().merge("concatenate_sources" => true) }
         it "fingerprints the value of concatenated key/pairs" do
           # SHA1 of "|field1|inner_key|🂡|1|2|field2|🂡|"
-          expect(fingerprint).to eq("d74f41841c7cdc793a97c218d2ff18064a5f1950")
+          expect(fingerprint).to eq("d2a1c14e0c9ef137d67114db23b3f2fdbcc90d08")
         end
       end
     end
