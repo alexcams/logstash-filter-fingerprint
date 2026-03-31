@@ -1,3 +1,6 @@
+## 3.5.0
+  - Fix fingerprint instability for Hash and Array field values caused by JRuby 10 changing `Hash#inspect` formatting [#79](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/79)
+
 ## 3.4.4
   - Fix, eagerly load OpenSSL classes ot avoid uninitialized constant error [#76](https://github.com/logstash-plugins/logstash-filter-fingerprint/pull/76)
 
