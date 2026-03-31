@@ -160,12 +160,12 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         if @concatenate_all_fields
           deep_sort_hashes(event.to_hash).each do |k,v|
             # Force encoding to UTF-8 to get around https://github.com/jruby/jruby/issues/6748
-            to_string << "|#{k}|#{to_canonical_string(v)}".force_encoding("UTF-8")
+            to_string << "|#{k}|#{to_canonical_value(v)}".force_encoding("UTF-8")
           end
         else
           @source.sort.each do |k|
             # Force encoding to UTF-8 to get around https://github.com/jruby/jruby/issues/6748
-            to_string << "|#{k}|#{to_canonical_string(event.get(k))}".force_encoding("UTF-8")
+            to_string << "|#{k}|#{to_canonical_value(event.get(k))}".force_encoding("UTF-8")
           end
         end
         to_string << "|"
@@ -175,9 +175,9 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
         @source.each do |field|
           next unless event.include?(field)
           if event.get(field).is_a?(Array)
-            event.set(@target, event.get(field).collect { |v| fingerprint(to_canonical_string(v)) })
+            event.set(@target, event.get(field).collect { |v| fingerprint(to_canonical_value(v)) })
           else
-            event.set(@target, fingerprint(to_canonical_string(event.get(field))))
+            event.set(@target, fingerprint(to_canonical_value(event.get(field))))
           end
         end
       end
@@ -201,15 +201,17 @@ class LogStash::Filters::Fingerprint < LogStash::Filters::Base
     end
   end
 
-  # Returns a canonical string representation of the given object.
-  # For Hashes and Arrays, produces a pipe-delimited format that is
+  # Returns a canonical representation of the given object for fingerprinting.
+  # For Hashes and Arrays, produces a pipe-delimited string that is
   # independent of Hash#inspect formatting (which changed in JRuby 10).
-  def to_canonical_string(object)
+  # Scalars pass through unchanged to preserve type-aware fingerprinting
+  # (e.g., MURMUR3 uses int64_hash for Integers vs str_hash for Strings).
+  def to_canonical_value(object)
     case object
     when Hash
-      object.sort.map { |k, v| "#{to_canonical_string(k)}|#{to_canonical_string(v)}" }.join("|")
+      object.sort.map { |k, v| "#{to_canonical_value(k)}|#{to_canonical_value(v)}" }.join("|")
     when Array
-      object.map { |e| to_canonical_string(e) }.join("|")
+      object.map { |e| to_canonical_value(e) }.join("|")
     else
       object
     end
